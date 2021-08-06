@@ -1,7 +1,7 @@
 const webpack = require('webpack')
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 module.exports = {
   entry: {
@@ -14,9 +14,11 @@ module.exports = {
     path: path.resolve(__dirname, 'extension/dist'),
     filename: '[name].js'
   },
-
+  optimization: {
+    moduleIds: "named"
+  },
   resolve: {
-    extensions: [ '.js', '.json', '.scss', '.css' ],
+    extensions: ['.js', '.json', '.scss', '.css'],
     alias: {
       utils: path.resolve(__dirname, 'src/app/utils'),
       images: path.resolve(__dirname, 'src/images'),
@@ -28,37 +30,34 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        loader: 'babel-loader',
+        use: 'babel-loader',
         exclude: /node_modules/
       },
       {
         test: /\.html$/,
-        loaders: [ 'html-loader' ]
+        use: 'html-loader'
       },
       {
         test: /\.(scss|css)$/,
-        use: ExtractTextPlugin.extract(
-          {
-            fallback: 'style-loader',
-            use: [ 'css-loader', 'sass-loader' ]
-          }
-        )
+        use: [
+          MiniCssExtractPlugin.loader,
+          "css-loader",
+          "sass-loader"
+        ]
       },
       {
         test: /\.(png|jpg|gif|svg|eot|ttf|woff|woff2)$/,
-        loader: 'url-loader',
-        options: {
-          limit: 10000
+        use: {
+          loader: 'url-loader',
+          options: {
+            limit: 10000
+          }
         }
       }
     ]
   },
 
   plugins: [
-    new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('development')
-    }),
-
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, 'src/views/options.html'),
       filename: 'options.html',
@@ -75,11 +74,10 @@ module.exports = {
       minify: {}
     }),
 
-    new ExtractTextPlugin('[name].css'),
+    new MiniCssExtractPlugin({ filename: '[name].css' }),
 
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
-    new webpack.NamedModulesPlugin()
   ],
 
   devtool: 'eval-cheap-module-source-map'
